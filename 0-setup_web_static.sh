@@ -1,28 +1,48 @@
 #!/usr/bin/env bash
-# Bash script that sets up your web servers for the deployment of web_static
+# sets up my web servers for the deployment of web_static
 
-apt-get -y update > /dev/null
-apt-get install -y nginx > /dev/null
+echo -e "\e[1;32m START\e[0m"
 
-# Create all necessary directories and file
-mkdir -p /data/web_static/releases/test/
-mkdir -p /data/web_static/shared/
-touch /data/web_static/releases/test/index.html
-echo "Hello World again!" > /data/web_static/releases/test/index.html
+#--Updating the packages
+sudo apt-get -y update
+sudo apt-get -y install nginx
+echo -e "\e[1;32m Packages updated\e[0m"
+echo
 
-# Check if directory current exist
-if [ -d "/data/web_static/current" ]
+#--configure firewall
+sudo ufw allow 'Nginx HTTP'
+echo -e "\e[1;32m Allow incomming NGINX HTTP connections\e[0m"
+echo
+
+#--created the dir
+sudo mkdir -p /data/web_static/releases/test /data/web_static/shared
+echo -e "\e[1;32m directories created"
+echo
+
+#--adds test string
+echo "<h1>Welcome to www.uniqueel.tech</h1>" > /data/web_static/releases/test/index.html
+echo -e "\e[1;32m Test string added\e[0m"
+echo
+
+#--prevent overwrite
+if [ -d "/data/web_static/current" ];
 then
-        sudo rm -rf /data/web_static/current
-fi
-# Create a symbolic link to test
-ln -sf /data/web_static/releases/test/ /data/web_static/current
+    echo "path /data/web_static/current exists"
+    sudo rm -rf /data/web_static/current;
+fi;
+echo -e "\e[1;32m prevent overwrite\e[0m"
+echo
 
-# Change ownership to user ubuntu
-chown -hR ubuntu:ubuntu /data
+#--create symbolic link
+sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
+sudo chown -hR ubuntu:ubuntu /data
 
-# Configure nginx to serve content pointed to by symbolic link to hbnb_static
-sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
+sudo sed -i '38i\\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
 
-# Restart server
-service nginx restart
+sudo ln -sf '/etc/nginx/sites-available/default' '/etc/nginx/sites-enabled/default'
+echo -e "\e[1;32m Symbolic link created\e[0m"
+echo
+
+#--restart NGINX
+sudo service nginx restart
+echo -e "\e[1;32m restart NGINX\e[0m"
